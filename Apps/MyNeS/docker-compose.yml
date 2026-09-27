@@ -3,7 +3,7 @@
 name: mynes
 services:
   mynes:
-    image: fxerkan/my_network_scanner:1.3.0
+    image: fxerkan/my_network_scanner:1.8.2
     container_name: mynes
     # ARP / mDNS / SSDP discovery only sees the LAN from the host network namespace.
     network_mode: host
@@ -15,6 +15,11 @@ services:
       MYNES_PORT: "5883"
       TZ: $TZ
       MYNES_PASSWORD: ""
+      # Login gate: set MYNES_AUTH_ENABLED to "true" and give it a user/password
+      # to require sign-in. Left off by default so a fresh install is reachable.
+      MYNES_AUTH_ENABLED: "false"
+      MYNES_AUTH_USERNAME: ""
+      MYNES_AUTH_PASSWORD: ""
       MYNES_MQTT_HOST: ""
       MYNES_HA_URL: ""
       MYNES_HA_TOKEN: ""
@@ -49,6 +54,18 @@ services:
           description:
             en_US: Master password used to encrypt stored device credentials. Leave empty to auto-generate.
             tr_TR: Cihaz kimlik bilgilerini şifrelemek için kullanılan ana parola. Boş bırakılırsa otomatik üretilir.
+        - container: MYNES_AUTH_ENABLED
+          description:
+            en_US: Set to "true" to require sign-in (needs a username and password below). Off by default.
+            tr_TR: Oturum açmayı zorunlu kılmak için "true" yapın (aşağıda kullanıcı adı ve parola gerekir). Varsayılan kapalı.
+        - container: MYNES_AUTH_USERNAME
+          description:
+            en_US: Login username, used only when MYNES_AUTH_ENABLED is true.
+            tr_TR: Giriş kullanıcı adı; yalnızca MYNES_AUTH_ENABLED true iken kullanılır.
+        - container: MYNES_AUTH_PASSWORD
+          description:
+            en_US: Login password, used only when MYNES_AUTH_ENABLED is true.
+            tr_TR: Giriş parolası; yalnızca MYNES_AUTH_ENABLED true iken kullanılır.
         - container: MYNES_MQTT_HOST
           description:
             en_US: Optional. MQTT broker host, so Zigbee2MQTT / Z-Wave JS / Tasmota devices show up too.
@@ -77,23 +94,25 @@ services:
             tr_TR: Yapılandırma ve şifrelenmiş kimlik bilgileri.
 x-casaos:
   id: io.github.fxerkan.mynes
-  version: "1.3.0"
-  update_at: "2026-08-04"
+  version: "1.8.2"
+  update_at: "2026-09-27"
   release_notes:
     en_US: |-
-      - Web Push notifications sent by MyNeS itself, so alerts need no Home Assistant
-        or third-party relay.
-      - A direct Home Assistant alert channel alongside MQTT Discovery.
-      - Editable regex identification patterns, so you can teach MyNeS to recognise
-        your own devices from the UI.
-      - Service worker fix: the PWA no longer serves the previous release's JavaScript.
+      - New MYNES_AUTH_ENABLED environment variable arms the single-user login
+        gate straight from the compose, for installs with no shell to flip the
+        Settings toggle. Pair it with MYNES_AUTH_USERNAME / MYNES_AUTH_PASSWORD.
+      - Saveable default filters on the device list, with a filter popover and
+        corrected filter-count badges.
+      - Device-store backups on every save, host-vs-container naming fixes and
+        Docker networks grouped under their host in the graph (from 1.8.x).
     tr_TR: |-
-      - Uyarilari MyNeS'in kendisi Web Push ile gonderiyor; Home Assistant ya da
-        ucuncu taraf bir role gerekmiyor.
-      - MQTT Discovery'nin yani sira dogrudan Home Assistant uyari kanali.
-      - Duzenlenebilir regex tanimlama desenleri; kendi cihazlarinizi arayuzden
-        tanitabiliyorsunuz.
-      - Service worker duzeltmesi: PWA artik onceki surumun JavaScript'ini sunmuyor.
+      - Yeni MYNES_AUTH_ENABLED ortam degiskeni, tek kullanicili oturum kapisini
+        dogrudan compose uzerinden acar; Ayarlar dugmesine erisemeyen kurulumlar
+        icin. MYNES_AUTH_USERNAME / MYNES_AUTH_PASSWORD ile birlikte kullanin.
+      - Cihaz listesinde kaydedilebilir varsayilan filtreler, filtre penceresi ve
+        duzeltilmis filtre sayaci rozetleri.
+      - Her kayitta cihaz deposu yedegi, host/konteyner adlandirma duzeltmeleri ve
+        grafikte Docker aglarinin host altinda gruplanmasi (1.8.x'ten).
   architectures:
     - amd64
     - arm64
